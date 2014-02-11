@@ -1,0 +1,4 @@
+This repository contains tests to be used for the
+validation of GnuTLS.
+
+They were originally based on the openssl CAVS tests.

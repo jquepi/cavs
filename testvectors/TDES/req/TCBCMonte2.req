@@ -1,0 +1,23 @@
+# CAVS 14.4
+# Config Info for : "nss-x8664-64-gen"
+# TDES Monte Carlo (Modes) Test for CBC
+# State : Encrypt and Decrypt
+# Thu Aug 29 11:48:18 AM
+
+[ENCRYPT]
+NumKeys = 2
+
+KEY1 = 70cd5da4136b3451
+KEY2 = 792551f28a6d373b
+KEY3 = 70cd5da4136b3451
+IV = d7f4279ef5e99994
+PLAINTEXT = 06f418145a8306b5
+
+[DECRYPT]
+NumKeys = 2
+
+KEY1 = 458a31cd757a2ac1
+KEY2 = 6d628019a764ad3e
+KEY3 = 458a31cd757a2ac1
+IV = 7a9ded83205aef18
+CIPHERTEXT = 8fe1595819c9558d

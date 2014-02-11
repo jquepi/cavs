@@ -1,0 +1,15 @@
+*~
+AES/fips_gcmtest
+AES/fips_aesavs
+HMAC/fips_hmactest
+testvectors/*/resp/
+TDES/testlist
+AES/testlist
+TDES/fips_desmovs
+RNG/fips_rngvs
+SHA/fips_shatest
+DSA2/fips_dssvs
+AES/testlist
+AES/testlist.gcm
+ECDSA/fips_ecdsavs
+RSA/fips_rsavtest

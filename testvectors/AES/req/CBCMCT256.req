@@ -1,0 +1,20 @@
+# CAVS 14.4
+# Config info for nss-x8664-64-gen
+# AESVS MCT test data for CBC
+# State : Encrypt and Decrypt
+# Key Length : 256
+# Generated on Thu Aug 29 11:51:37 2013
+
+[ENCRYPT]
+
+COUNT = 0
+KEY = 22c586396c5f94b9327b324887b51b061cc8ad2d56549bf1a3dfe2aa0f19fe34
+IV = e28586b8b574c321544874c09d3594f4
+PLAINTEXT = 6350cc42104923afb0f5bf46f3536b2c
+
+[DECRYPT]
+
+COUNT = 0
+KEY = 9c0a3e9a51b51d9ea1f1268ef3d81af339e599c42259f0e590de32ed4c6b8a2c
+IV = 6f46d9873822dfe9f8795d294d7b9217
+CIPHERTEXT = 60e4efbb7ef0dcfce197b4538008b594

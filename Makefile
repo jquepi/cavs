@@ -1,0 +1,14 @@
+REQUIRE_FIPS=
+SUBDIRS=RNG AES TDES HMAC SHA DSA2 ECDSA# RSA
+
+all: check
+
+.PHONY: check $(SUBDIRS)
+
+check: $(SUBDIRS)
+
+$(SUBDIRS):
+	$(MAKE) $(MAKEFLAGS) -e REQUIRE_FIPS=$(REQUIRE_FIPS) -C $@ check
+
+clean:
+	for i in $(SUBDIRS);do $(MAKE) -C $$i clean;done
