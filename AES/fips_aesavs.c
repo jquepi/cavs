@@ -455,7 +455,7 @@ int proc_file(char *rqfile, char *rspfile)
 			} else {
 				len = hex2bin((char *)ibuf + 6, aKey);
 				if (len < 0) {
-					printf("Invalid KEY\n");
+					printf("Invalid KEY: %s\n", ibuf+6);
 					err = 1;
 					break;
 				}

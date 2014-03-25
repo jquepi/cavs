@@ -58,6 +58,14 @@ int hex2bin(const char *in, unsigned char *out)
 	unsigned char ch;
 	int len = strlen(in);
 	
+	if (len > 0 && in[len-1] == '\n') {
+		len--;
+	}
+
+	if (len > 0 && in[len-1] == '\r') {
+		len--;
+	}
+	
 	n2 = n1 = 0;
 	if (len % 2 != 0) {
 		if ((in[n1] >= '0') && (in[n1] <= '9'))
@@ -66,8 +74,10 @@ int hex2bin(const char *in, unsigned char *out)
 			ch = in[n1++] - 'A' + 10;
 		else if ((in[n1] >= 'a') && (in[n1] <= 'f'))
 			ch = in[n1++] - 'a' + 10;
-		else
+		else {
+			fprintf(stderr, "unknown char: '%c'\n", in[n1]);
 			return -1;
+		}
 
 		out[n2++] = ch;
 	}
@@ -93,8 +103,10 @@ int hex2bin(const char *in, unsigned char *out)
 			ch = in[n1++] - 'A' + 10;
 		else if ((in[n1] >= 'a') && (in[n1] <= 'f'))
 			ch = in[n1++] - 'a' + 10;
-		else
+		else {
+			fprintf(stderr, "unknown char: '%c'\n", in[n1]);
 			return -1;
+		}
 		out[n2++] |= ch;
 	}
 	return n2;
