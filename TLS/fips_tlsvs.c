@@ -233,6 +233,7 @@ int main(int argc, char **argv)
 
 			parsed = 0;
 			free(msbuf);
+			free(seed);
 			free(outbuf);
 			free(tmpbuf);
 		}
