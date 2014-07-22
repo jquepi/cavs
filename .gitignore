@@ -13,3 +13,4 @@ AES/testlist
 AES/testlist.gcm
 ECDSA/fips_ecdsavs
 RSA/fips_rsavtest
+TLS/fips_tlsvs

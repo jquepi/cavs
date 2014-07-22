@@ -47,6 +47,9 @@
  *
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <gnutls/gnutls.h>
 
 #define do_print_errors() \
