@@ -182,8 +182,13 @@ static void ec_output_Zhash(FILE * out, int exout, gnutls_ecc_curve_t group,
 
 	ret = _gnutls_ecdh_compute_key(group, ix, iy, id, cx, cy, &Z);
 	if (ret < 0) {
-		fprintf(out, "Result = F\n");
-		goto fail;
+		if (md) {
+			fprintf(out, "Result = F\n");
+			goto fail;
+		} else {
+			fprintf(stderr, "error in %s:%d\n", __func__, __LINE__);
+			exit(1);
+		}
 	}
 	if (md) {
 		if (exout)
