@@ -1,9 +1,0 @@
-#  CAVS 14.4
-#  "SHA-1 Monte" information for "nss-x8664-64-gen"
-#  SHA tests are configured for BYTE oriented implementations
-#  Generated on Thu Aug 29 11:53:41 2013
-
-[L = 20]
-
-Seed = c5d3d9a74544f06351a28da77991d6cd40cf9d35
-
