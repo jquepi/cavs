@@ -134,6 +134,9 @@ void pqg()
 			test = TEST_GEN_PQ;
 		} else if (!strncmp(buf, "[A.2.3 ", 7)) {
 			test = TEST_GEN_G;
+		} else if (!strncmp(buf, "[A.2.", 5)) {
+			fprintf(stderr, "unsupported mode: %s\n", buf);
+			exit(1);
 		}
 
 		if (!parse_line(&keyword, &value, lbuf, buf)) {
