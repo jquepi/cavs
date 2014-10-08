@@ -12,8 +12,8 @@ LDFLAGS=-L/usr/local/lib -lgnutls
 
 all: fips_rngvs
 
-Q=../testvectors/RNG/req
-A=../testvectors/RNG/resp
+Q=../testvectors/DRBG800-90A/req
+A=../testvectors/DRBG800-90A/resp
 
 .PHONY: check
 

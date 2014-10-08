@@ -61,6 +61,10 @@ static void test(void)
 				fprintf(stderr, "Invalid EntropyInput length %d\n", entropy_size);
 				exit(1);
 			}
+		} else if (!strcmp(keyword, "COUNT")) {
+			entropy_size = pstring_size = 0;
+			additional_reseed_size = entropy_reseed_size = 0;
+			additional_size[0] = additional_size[1] = 0;
 		} else if (!strcmp(keyword, "EntropyInputReseed")) {
 			entropy_reseed = hex2bin_m(value, &entropy_reseed_size);
 			if (entropy_reseed_size != DRBG_AES_SEED_SIZE) {
@@ -87,14 +91,14 @@ static void test(void)
 
 			a_idx++;
 			a_idx %= 2;
+			if (a_idx == 0)
+				complete = 1;
 		} else if (!strcmp(keyword, "AdditionalInputReseed")) {
 			additional_reseed = hex2bin_m(value, &additional_reseed_size);
 			if (additional_reseed_size != DRBG_AES_SEED_SIZE && additional_reseed_size != 0) {
 				fprintf(stderr, "Invalid AdditionalInputReseed length %d\n", additional_reseed_size);
 				exit(1);
 			}
-		} else if (!strcmp(keyword, "ReturnedBits")) {
-			complete = 1;
 		}
 		
 		if (complete == 1) {
@@ -114,7 +118,7 @@ static void test(void)
 			}
 			/* disable the continuous random number generator test */
 			ctx.prev_block_present = 1;
-			
+
 			if (entropy_reseed_size > 0) {
 				ret = drbg_aes_reseed(&ctx, entropy_reseed_size, entropy_reseed, 
 					additional_reseed_size, additional_reseed);
