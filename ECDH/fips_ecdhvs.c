@@ -179,11 +179,10 @@ static void ec_output_Zhash(FILE * out, int exout, gnutls_ecc_curve_t group,
 			OutputValue("QIUTd", _id.data, _id.size, out, 0);
 		}
 	}
-
 	ret = _gnutls_ecdh_compute_key(group, ix, iy, id, cx, cy, &Z);
 	if (ret < 0) {
 		if (md) {
-			fprintf(out, "Result = F\n");
+			fprintf(out, "Result = F\n", gnutls_ecc_curve_get_name(group));
 			goto fail;
 		} else {
 			fprintf(stderr, "error in %s:%d\n", __func__, __LINE__);
@@ -198,7 +197,7 @@ static void ec_output_Zhash(FILE * out, int exout, gnutls_ecc_curve_t group,
 			    chash, rhashlen, out, 0);
 		if (rhash) {
 			fprintf(out, "Result = %s\n",
-				memcmp(chash, rhash, rhashlen) ? "F" : "P");
+				memcmp(chash, rhash, rhashlen) == 0 ? "P" : "F");
 		}
 	} else
 		OutputValue("ZIUT", Z.data, Z.size, out, 0);
@@ -224,8 +223,11 @@ int main(int argc, char **argv)
 	int do_verify = -1, exout = 0;
 	int rv = 1;
 	gnutls_ecc_curve_t nid = GNUTLS_ECC_CURVE_INVALID;
+	unsigned char nids[256];
 
 	int param_set = -1;
+	
+	memset(nids, 0, sizeof(nids));
 
 	if (argn && !strcmp(*args, "ecdhver")) {
 		do_verify = 1;
@@ -282,7 +284,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Parse error: %s:%d\n", __func__, __LINE__);
 				goto parse_error;
 			}
-			param_set = c - 'A';
+			param_set = c;
 			/* If just [E?] then initial paramset */
 			if (buf[3] == ']')
 				continue;
@@ -297,17 +299,11 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Parse error: %s:%d\n", __func__, __LINE__);
 				goto parse_error;
 			}
-		}
-
-		if (strlen(buf) > 4 && buf[0] == '[' && buf[2] == '-') {
-			nid = lookup_curve2(buf + 1);
-			if (nid == GNUTLS_ECC_CURVE_INVALID) {
-				fprintf(stderr, "Parse error: %s:%d\n", __func__, __LINE__);
-				goto parse_error;
-			}
+			nids[param_set] = nid;
 		}
 
 		if (strlen(buf) > 6 && !strncmp(buf, "[E", 2)) {
+			nid = nids[(int)buf[2]];
 			md = parse_md(buf);
 			if (md == GNUTLS_DIG_UNKNOWN) {
 				fprintf(stderr, "Parse error: %s:%d: %s\n", __func__, __LINE__, buf);
