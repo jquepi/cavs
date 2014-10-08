@@ -12,8 +12,8 @@ LDFLAGS=-L/usr/local/lib -lgnutls
 
 all: fips_tlsvs
 
-Q=../testvectors/TLS/req
-A=../testvectors/TLS/resp
+Q=../testvectors/KDF135/req
+A=../testvectors/KDF135/resp
 
 .PHONY: check
 

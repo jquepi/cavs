@@ -78,9 +78,9 @@ _gnutls_prf_raw(gnutls_mac_algorithm_t mac,
 #define TLS1_PRF GNUTLS_MAC_UNKNOWN
 
 #define TLS_MD_MASTER_SECRET_CONST              "master secret"
-#define TLS_MD_MASTER_SECRET_CONST_SIZE         13
+#define TLS_MD_MASTER_SECRET_CONST_SIZE         (sizeof(TLS_MD_MASTER_SECRET_CONST)-1)
 #define TLS_MD_KEY_EXPANSION_CONST              "key expansion"
-#define TLS_MD_KEY_EXPANSION_CONST_SIZE         13
+#define TLS_MD_KEY_EXPANSION_CONST_SIZE         (sizeof(TLS_MD_KEY_EXPANSION_CONST)-1)
 
 #define TLS_MASTER_SECRET_LEN 384/8
 
@@ -202,9 +202,8 @@ int main(int argc, char **argv)
 			    TLS_MASTER_SECRET_LEN ? TLS_MASTER_SECRET_LEN :
 			    kblen;
 			unsigned char *msbuf = calloc(1, TLS_MASTER_SECRET_LEN);
-			unsigned char *outbuf = calloc(1, buflen);
-			unsigned char *tmpbuf = calloc(1, buflen);
 			unsigned char *seed = calloc(1, shrandomlen+chrandomlen);
+			unsigned char *outbuf = calloc(1, buflen);
 
 			memcpy(seed, chrandom, chrandomlen);
 			memcpy(seed+chrandomlen, shrandom, shrandomlen);
@@ -219,11 +218,11 @@ int main(int argc, char **argv)
 			OutputValue("master_secret", msbuf,
 				    TLS_MASTER_SECRET_LEN, out, 0);
 
-			memcpy(seed, crandom, crandomlen);
-			memcpy(seed+crandomlen, srandom, srandomlen);
+			memcpy(seed, srandom, srandomlen);
+			memcpy(seed+srandomlen, crandom, crandomlen);
 
 			_gnutls_prf_raw(algmask,
-					 pmslen, pms,
+					 TLS_MASTER_SECRET_LEN, msbuf,
 					 TLS_MD_KEY_EXPANSION_CONST_SIZE,
 					 TLS_MD_KEY_EXPANSION_CONST,
 					 srandomlen+crandomlen, seed,
@@ -235,7 +234,6 @@ int main(int argc, char **argv)
 			free(msbuf);
 			free(seed);
 			free(outbuf);
-			free(tmpbuf);
 		}
 
 	}
