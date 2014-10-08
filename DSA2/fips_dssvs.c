@@ -372,9 +372,9 @@ void pqgver()
 
 			ret = _dsa_validate_dss_pq(&pub, &seeds);
 			if (ret == 0) {
-				printf("Validation: FAILED\n");
+				printf("Result = F\n");
 			} else {
-				printf("Validation: Success\n");
+				printf("Result = P\n");
 			}
 			putc('\n', stdout);
 			dsa_public_key_clear(&pub);
@@ -394,9 +394,9 @@ void pqgver()
 
 			ret = _dsa_validate_dss_g(&pub, domain_seed.size, domain_seed.data, idx);
 			if (ret == 0) {
-				printf("Validation: FAILED\n");
+				printf("Result = F\n");
 			} else {
-				printf("Validation: Success\n");
+				printf("Result = P\n");
 			}
 			putc('\n', stdout);
 			dsa_public_key_clear(&pub);

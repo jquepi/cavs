@@ -32,7 +32,7 @@ test_sigver: common
 	if [ -f $(Q)/SigVer.req ]; then ./fips_dssvs sigver < $(Q)/SigVer.req > $(A)/SigVer.rsp; fi
 
 test_ver: common
-	if [ -f $(Q)/PQGVer.req ]; then ./fips_dssvs pqgver < $(Q)/PQGVer.req > $(A)/PQGVer.rsp; fi
+	if [ -f $(Q)/PQGVer1863.req ]; then ./fips_dssvs pqgver < $(Q)/PQGVer1863.req > $(A)/PQGVer1863.rsp; fi
 
 .PHONY: check common test_keypair test_gen test_siggen test_sigver test_ver
 
