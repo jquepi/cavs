@@ -16,8 +16,8 @@ Q=../testvectors/KAS/req
 A=../testvectors/KAS/resp
 
 common: fips_dhvs
-	-rm -rf $A
-	-mkdir $A
+	-rm -f $A/*Test_FCC*
+	-mkdir -p $A
 
 test_dhgen: common
 	if [ -f $(Q)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_init.req ]; then ./fips_dhvs dhgen < $(Q)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_init.req > $(A)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_init.rsp; fi
