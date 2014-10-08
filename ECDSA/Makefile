@@ -12,8 +12,8 @@ LDFLAGS=-L/usr/local/lib -lgnutls -lgmp -lhogweed
 
 all: fips_ecdsavs
 
-Q=../testvectors/ECDSA/req
-A=../testvectors/ECDSA/resp
+Q=../testvectors/ECDSA2/req
+A=../testvectors/ECDSA2/resp
 
 common: fips_ecdsavs
 	-rm -rf $A
