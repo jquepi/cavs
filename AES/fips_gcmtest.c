@@ -54,11 +54,6 @@
 #include <gnutls/gnutls.h>
 #include <gnutls/crypto.h>
 
-#include <openssl/bn.h>
-#include <openssl/dsa.h>
-#include <openssl/fips.h>
-#include <openssl/err.h>
-#include <openssl/evp.h>
 #include <string.h>
 #include <ctype.h>
 
