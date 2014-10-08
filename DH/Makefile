@@ -12,8 +12,8 @@ LDFLAGS=-L/usr/local/lib -lgnutls -lgmp -lhogweed
 
 all: fips_dhvs
 
-Q=../testvectors/DH/req
-A=../testvectors/DH/resp
+Q=../testvectors/KAS/req
+A=../testvectors/KAS/resp
 
 common: fips_dhvs
 	-rm -rf $A
@@ -21,9 +21,11 @@ common: fips_dhvs
 
 test_dhgen: common
 	if [ -f $(Q)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_init.req ]; then ./fips_dhvs dhgen < $(Q)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_init.req > $(A)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_init.rsp; fi
+	if [ -f $(Q)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_resp.req ]; then ./fips_dhvs dhgen < $(Q)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_resp.req > $(A)/KASFunctionTest_FFCEphem_NOKC_ZZOnly_resp.rsp; fi
 
 test_dhver: common
 	if [ -f $(Q)/KASValidityTest_FFCEphem_NOKC_ZZOnly_init.req ]; then ./fips_dhvs dhver < $(Q)/KASValidityTest_FFCEphem_NOKC_ZZOnly_init.req > $(A)/KASValidityTest_FFCEphem_NOKC_ZZOnly_init.rsp; fi
+	if [ -f $(Q)/KASValidityTest_FFCEphem_NOKC_ZZOnly_resp.req ]; then ./fips_dhvs dhver < $(Q)/KASValidityTest_FFCEphem_NOKC_ZZOnly_resp.req > $(A)/KASValidityTest_FFCEphem_NOKC_ZZOnly_resp.rsp; fi
 
 .PHONY: check common test_dhgen test_dhver
 
