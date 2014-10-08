@@ -36,8 +36,11 @@ void keygen()
 	gnutls_datum_t q = { NULL, 0 }, n = {
 	NULL, 0};
 	gnutls_datum_t d = { NULL, 0 };
+	unsigned start = 0;
 	struct rsa_public_key pub;
 	struct rsa_private_key priv;
+	unsigned int iters = 0, i;
+	char s[64];
 
 	while (fgets(buf, sizeof buf, stdin) != NULL) {
 		if (!parse_line(&keyword, &value, lbuf, buf)) {
@@ -71,36 +74,55 @@ void keygen()
 			continue;
 		}
 
-		if (!strcmp(keyword, "e")) {
-			e = hex2raw(value);
-			printf("%s", buf);
-		} else if (!strcmp(keyword, "seed")) {
-			seed = hex2raw(value);
-			printf("%s", buf);
-
-			rsa_public_key_init(&pub);
-			rsa_private_key_init(&priv);
-
-			/* set e */
-			nettle_mpz_set_str_256_u(pub.e, e.size, e.data);
-
-			ret = _rsa_generate_fips186_4_keypair(&pub, &priv,
-							      seed.size,
-							      seed.data, NULL,
-							      NULL, l);
-			if (ret == 0) {
-				do_print_errors();
+		if (!strcmp(keyword, "n")) {
+			iters = atoi(value);
+			if (iters == 0) {
+				fprintf(stderr, "error in %s\n", buf);
 				exit(1);
 			}
+			start = 1;
+		}
 
-			pbn("p", priv.p);
-			pbn("q", priv.q);
-			pbn("n", pub.n);
-			pbn("d", priv.d);
-			putc('\n', stdout);
-			fflush(stdout);
-			rsa_private_key_clear(&priv);
-			rsa_public_key_clear(&pub);
+		if (start != 0) {
+			start = 0;
+
+			for (i=0;i<iters;i++) {
+				if (l == 2048) {
+					seed.size = 14*2;
+				} else {
+					seed.size = 16*2;
+				}
+
+				gnutls_rnd(GNUTLS_RND_NONCE, s, seed.size);
+				seed.data = s;
+				do_bn_print_name(stdout, "seed", &seed);
+
+				rsa_public_key_init(&pub);
+				rsa_private_key_init(&priv);
+
+				/* set e */
+				/*nettle_mpz_set_str_256_u(pub.e, e.size, e.data);*/
+				mpz_set_ui(pub.e, 65537);
+				pbn("e", pub.e);
+
+				ret = _rsa_generate_fips186_4_keypair(&pub, &priv,
+								      seed.size,
+								      seed.data, NULL,
+								      NULL, l);
+				if (ret == 0) {
+					do_print_errors();
+					exit(1);
+				}
+
+				pbn("p", priv.p);
+				pbn("q", priv.q);
+				pbn("n", pub.n);
+				pbn("d", priv.d);
+				putc('\n', stdout);
+				fflush(stdout);
+				rsa_private_key_clear(&priv);
+				rsa_public_key_clear(&pub);
+			}
 		}
 	}
 }
