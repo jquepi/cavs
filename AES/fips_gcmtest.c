@@ -296,13 +296,18 @@ int main(int argc, char **argv)
 	int encrypt;
 	int xts = 0, ccm = 0;
 	FILE *in, *out;
+	char *rp;
 	if (argc == 4) {
 		in = fopen(argv[2], "r");
 		if (!in) {
 			fprintf(stderr, "Error opening input file\n");
 			exit(1);
 		}
-		out = fopen(argv[3], "w");
+		rp = strstr(argv[3], ".req");
+		if (rp != NULL)
+			memcpy(rp, ".rsp", 4);
+		else rp = argv[3];
+		out = fopen(rp, "w");
 		if (!out) {
 			fprintf(stderr, "Error opening output file\n");
 			exit(1);
