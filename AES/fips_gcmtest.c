@@ -162,7 +162,7 @@ static void gcmtest(FILE * in, FILE * out, int encrypt)
 				exit(1);
 			}
 
-			OutputValue("IV", iv, ivlen, out, 0);
+			//OutputValue("IV", iv, ivlen, out, 0);
 
 			if (aadlen) {
 				ret = gnutls_cipher_add_auth(ctx, aad, aadlen);
@@ -205,6 +205,7 @@ static void gcmtest(FILE * in, FILE * out, int encrypt)
 			iv = aad = ct = pt = key = tag = NULL;
 		}
 		if (!encrypt && tag) {
+			unsigned char ttag[16];
 
 			if (!iv || ivlen == 0) {
 				fprintf(stderr, "No IV: %d\n", line);
@@ -262,13 +263,13 @@ static void gcmtest(FILE * in, FILE * out, int encrypt)
 				}
 			}
 
-			ret = gnutls_cipher_tag(ctx, tag, taglen);
+			ret = gnutls_cipher_tag(ctx, ttag, taglen);
 			if (ret < 0) {
 				do_print_errors();
 				exit(1);
 			}
 
-			if (ret < 0)
+			if (ret < 0 || memcmp(ttag, tag, taglen) != 0)
 				fprintf(out, "FAIL\n");
 			else
 				OutputValue("PT", pt, ptlen, out, 0);
