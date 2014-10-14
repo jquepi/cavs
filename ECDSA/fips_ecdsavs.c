@@ -378,6 +378,7 @@ void sigver()
 			ret = gnutls_pubkey_verify_data2(key, sig_algo, 0, &msg, &sig);
 			if (ret < 0) {
 				printf("Result = F\n");
+				//printf("Result = F (curve: %s)\n", gnutls_ecc_curve_get_name(curve));
 			} else {
 				printf("Result = P\n");
 			}
@@ -388,8 +389,6 @@ void sigver()
 			gnutls_free(r.data);
 			
 			gnutls_pubkey_deinit(key);
-			curve = 0;
-			sig_algo = 0;
 		}
 	}
 }
