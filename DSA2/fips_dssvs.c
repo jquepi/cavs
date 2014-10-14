@@ -306,7 +306,7 @@ void pqgver()
 			p_seed.size = q_seed.size = 0;
 			
 			printf("%s", buf);
-			validate_pq = 1;
+			validate_g = 1;
 		} else if (!strcmp(keyword, "pseed")) {
 			p_seed = hex2raw(value);
 
@@ -334,7 +334,6 @@ void pqgver()
 		} else if (!strcmp(keyword, "G")) {
 			g = hex2raw(value);
 			printf("%s", buf);
-			validate_g = 1;
 		} else if (!strcmp(keyword, "Q")) {
 			/* if Q exists we are asked to generate G */
 			q = hex2raw(value);
