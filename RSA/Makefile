@@ -7,7 +7,7 @@ ifeq (${REQUIRE_FIPS},1)
 endif
 
 CC=	gcc
-CFLAGS=-g -O2
+CFLAGS=-g -O2 -Wall
 LDFLAGS=-L/usr/local/lib -lhogweed -lgmp -lgnutls
 
 all: fips_rsavtest

@@ -22,6 +22,46 @@ static void pbn(const char *name, mpz_t n)
 	return;
 }
 
+static int compare(gnutls_datum_t *_d1, gnutls_datum_t *_d2)
+{
+	gnutls_datum_t d1, d2;
+
+	memcpy(&d1, _d1, sizeof(d1));
+	memcpy(&d2, _d2, sizeof(d2));
+
+	while(d1.size > 0 && d1.data[0] == 0) {
+		d1.size--;
+		d1.data++;
+	}
+	while(d2.size > 0 && d2.data[0] == 0) {
+		d2.size--;
+		d2.data++;
+	}
+
+	if (d1.size != d2.size)
+		return -1;
+	if (memcmp(d1.data, d2.data, d2.size) != 0)
+		return -1;
+	return 0;
+}
+
+static
+gnutls_datum_t get_mpi(mpz_t n)
+{
+	gnutls_datum_t r = {NULL, 0};
+
+	r.size = nettle_mpz_sizeinbase_256_u(n);
+	if (r.size == 0)
+		return r;
+
+	r.data = malloc(r.size);
+	if (r.data == NULL)
+		abort();
+
+	nettle_mpz_get_str_256(r.size, r.data, n);
+	return r;
+}
+
 #define METHOD "[PrimeMethod"
 
 void keygen()
@@ -30,14 +70,9 @@ void keygen()
 	char lbuf[1024];
 	char *keyword, *value;
 	int l = 0, ret;
-	gnutls_datum_t e = { NULL, 0 };
-	gnutls_datum_t seed = { NULL, 0 }, p = {
-	NULL, 0};
-	gnutls_datum_t q = { NULL, 0 }, n = {
-	NULL, 0};
-	gnutls_datum_t d = { NULL, 0 };
 	unsigned start = 0;
 	struct rsa_public_key pub;
+	gnutls_datum_t seed = {NULL, 0};
 	struct rsa_private_key priv;
 	unsigned int iters = 0, i;
 	char s[64];
@@ -94,7 +129,7 @@ void keygen()
 				}
 
 				gnutls_rnd(GNUTLS_RND_NONCE, s, seed.size);
-				seed.data = s;
+				seed.data = (void*)s;
 				do_bn_print_name(stdout, "seed", &seed);
 
 				rsa_public_key_init(&pub);
@@ -127,6 +162,161 @@ void keygen()
 	}
 }
 
+void keyver()
+{
+	char buf[1024];
+	char lbuf[1024];
+	char *keyword, *value;
+	int l = 0, ret;
+	gnutls_datum_t e = { NULL, 0 };
+	gnutls_datum_t seed = { NULL, 0 }, p = {
+	NULL, 0};
+	gnutls_datum_t q = { NULL, 0 }, n = {
+	NULL, 0};
+	gnutls_datum_t d = { NULL, 0 };
+	unsigned start = 0;
+	unsigned err, exitno = 0;
+	struct rsa_public_key pub;
+	struct rsa_private_key priv;
+	gnutls_datum_t t;
+
+	while (fgets(buf, sizeof buf, stdin) != NULL) {
+		if (!parse_line(&keyword, &value, lbuf, buf)) {
+			fputs(buf, stdout);
+			continue;
+		}
+
+		if (!strncmp(keyword, "[mod", 3)) {
+			l = atoi(value);
+			fputs(buf, stdout);
+			continue;
+		}
+
+		if (!strncmp(keyword, METHOD, sizeof(METHOD) - 1)) {
+			if (strncmp(value, "ProvRP", 6) != 0) {
+				fprintf(stderr, "unsupported method: %s\n",
+					value);
+				exit(1);
+			}
+			fputs(buf, stdout);
+			continue;
+		}
+
+		if (!strncmp(keyword, "[hash", sizeof("[hash") - 1)) {
+			if (strncmp(value, "SHA384", 6) != 0) {
+				fprintf(stderr, "unsupported hash: %s\n",
+					value);
+				exit(1);
+			}
+			fputs(buf, stdout);
+			continue;
+		}
+
+		if (!strcmp(keyword, "p")) {
+			free(p.data);
+			p = hex2raw(value);
+			fputs(buf, stdout);
+		} else if (!strcmp(keyword, "q")) {
+			free(q.data);
+			q = hex2raw(value);
+			fputs(buf, stdout);
+		} else if (!strcmp(keyword, "e")) {
+			free(e.data);
+			e = hex2raw(value);
+			fputs(buf, stdout);
+		} else if (!strcmp(keyword, "n")) {
+			free(n.data);
+			n = hex2raw(value);
+			fputs(buf, stdout);
+		} else if (!strcmp(keyword, "seed")) {
+			free(seed.data);
+			seed = hex2raw(value);
+			fputs(buf, stdout);
+		} else if (!strcmp(keyword, "d")) {
+			free(d.data);
+			d = hex2raw(value);
+			fputs(buf, stdout);
+			start = 1;
+		}
+
+		if (start != 0) {
+			start = 0;
+
+			if (l == 2048) {
+				if (seed.size != 14*2) {
+					fprintf(stderr, "error in sid.size (have %d, expected: %d)\n", seed.size, 14*2);
+					exit(1);
+				}
+			} else {
+				if (seed.size != 16*2) {
+					fprintf(stderr, "error in sid.size (have %d, expected: %d)\n", seed.size, 16*2);
+					exit(1);
+				}
+			}
+
+			rsa_public_key_init(&pub);
+			rsa_private_key_init(&priv);
+
+			/* set e */
+			nettle_mpz_set_str_256_u(pub.e, e.size, e.data);
+
+			ret = _rsa_generate_fips186_4_keypair(&pub, &priv,
+							      seed.size,
+							      seed.data, NULL,
+							      NULL, l);
+			if (ret == 0) {
+				fprintf(stdout, "FAIL (cannot generate)\n");
+				goto cont;
+			}
+
+			err = 0;
+			t = get_mpi(priv.p);
+			if (compare(&t, &p) != 0) {
+				fprintf(stderr, "error comparing p\n");
+				pbn("expecting p", priv.p);
+				err = 1;
+			}
+			free(t.data);
+
+			t = get_mpi(priv.q);
+			if (compare(&t, &q) != 0) {
+				fprintf(stderr, "error comparing q\n");
+				pbn("expecting q", priv.q);
+				err = 1;
+			}
+			free(t.data);
+
+			t = get_mpi(pub.n);
+			if (compare(&t, &n) != 0) {
+				fprintf(stderr, "error comparing n\n");
+				pbn("expecting n", pub.n);
+				err = 1;
+			}
+			free(t.data);
+
+			t = get_mpi(priv.d);
+			if (compare(&t, &d) != 0) {
+				fprintf(stderr, "error comparing d\n");
+				pbn("expecting d", priv.d);
+				err = 1;
+			}
+			free(t.data);
+
+			if (err == 0)
+				fprintf(stdout, "PASS\n");
+			else {
+				fprintf(stdout, "FAIL\n");
+				exitno = 1;
+			}
+ cont:
+			fflush(stdout);
+			rsa_private_key_clear(&priv);
+			rsa_public_key_clear(&pub);
+		}
+	}
+	exit(exitno);
+}
+
 void sigver()
 {
 	gnutls_pubkey_t key;
@@ -137,10 +327,8 @@ void sigver()
 	int ret;
 	gnutls_datum_t e = { NULL, 0 }, n = {
 	NULL, 0};
-	gnutls_datum_t s = { NULL, 0 };
 	gnutls_datum_t msg = { NULL, 0 };
 	gnutls_datum_t sig;
-	unsigned hash = 0;
 	unsigned sig_algo = 0;
 
 	while (fgets(buf, sizeof buf, stdin) != NULL) {
@@ -169,19 +357,14 @@ void sigver()
 			fputs(buf, stdout);
 		} else if (!strcmp(keyword, "SHAAlg")) {
 			if (strcmp(value, "SHA1") == 0) {
-				hash = GNUTLS_DIG_SHA1;
 				sig_algo = GNUTLS_SIGN_RSA_SHA1;
 			} else if (strcmp(value, "SHA256") == 0) {
-				hash = GNUTLS_DIG_SHA256;
 				sig_algo = GNUTLS_SIGN_RSA_SHA256;
 			} else if (strcmp(value, "SHA224") == 0) {
-				hash = GNUTLS_DIG_SHA224;
 				sig_algo = GNUTLS_SIGN_RSA_SHA224;
 			} else if (strcmp(value, "SHA384") == 0) {
-				hash = GNUTLS_DIG_SHA384;
 				sig_algo = GNUTLS_SIGN_RSA_SHA384;
 			} else if (strcmp(value, "SHA512") == 0) {
-				hash = GNUTLS_DIG_SHA512;
 				sig_algo = GNUTLS_SIGN_RSA_SHA512;
 			} else {
 				fprintf(stderr, "unknown hash: %s\n", value);
@@ -226,7 +409,6 @@ void sigver()
 			gnutls_free(sig.data);
 
 			gnutls_pubkey_deinit(key);
-			hash = 0;
 			sig_algo = 0;
 		}
 	}
@@ -343,7 +525,7 @@ void siggen()
 int main(int argc, char **argv)
 {
 	if (argc != 2) {
-		fprintf(stderr, "%s [keypair|siggen|sigver|pkv]\n", argv[0]);
+		fprintf(stderr, "%s [keygen|keyver|siggen|sigver]\n", argv[0]);
 		exit(1);
 	}
 #ifdef REQUIRE_FIPS
@@ -355,6 +537,8 @@ int main(int argc, char **argv)
 
 	if (!strcmp(argv[1], "keygen"))
 		keygen();
+	else if (!strcmp(argv[1], "keyver"))
+		keyver();
 	else if (!strcmp(argv[1], "sigver"))
 		sigver();
 	else if (!strcmp(argv[1], "siggen"))
