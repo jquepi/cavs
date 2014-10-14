@@ -188,15 +188,27 @@ void siggen()
 			l = atoi(buf+3);
 			if (l == 256) {
 				curve = GNUTLS_ECC_CURVE_SECP256R1;
-				hash = GNUTLS_DIG_SHA256;
 			} else if (l == 384) {
 				curve = GNUTLS_ECC_CURVE_SECP384R1;
-				hash = GNUTLS_DIG_SHA384;
 			} else if (l == 521) {
 				curve = GNUTLS_ECC_CURVE_SECP521R1;
-				hash = GNUTLS_DIG_SHA512;
 			} else {
 				fprintf(stderr, "Unsupported curve: %s\n", buf);
+				exit(1);
+			}
+
+			if (strstr(buf, "SHA-1") != 0) {
+				hash = GNUTLS_DIG_SHA1;
+			} else if (strstr(buf, "SHA-224") != 0) {
+				hash = GNUTLS_DIG_SHA224;
+			} else if (strstr(buf, "SHA-256") != 0) {
+				hash = GNUTLS_DIG_SHA256;
+			} else if (strstr(buf, "SHA-384") != 0) {
+				hash = GNUTLS_DIG_SHA384;
+			} else if (strstr(buf, "SHA-512") != 0) {
+				hash = GNUTLS_DIG_SHA512;
+			} else {
+				fprintf(stderr, "unknown hash algo: %s\n", buf);
 				exit(1);
 			}
 
@@ -316,15 +328,26 @@ void sigver()
 			l = atoi(buf+3);
 			if (l == 256) {
 				curve = GNUTLS_ECC_CURVE_SECP256R1;
-				sig_algo = GNUTLS_SIGN_ECDSA_SHA1;
 			} else if (l == 384) {
 				curve = GNUTLS_ECC_CURVE_SECP384R1;
-				sig_algo = GNUTLS_SIGN_ECDSA_SHA1;
 			} else if (l == 521) {
 				curve = GNUTLS_ECC_CURVE_SECP521R1;
-				sig_algo = GNUTLS_SIGN_ECDSA_SHA1;
 			} else {
 				fprintf(stderr, "Unsupported curve: %s\n", buf);
+				exit(1);
+			}
+			if (strstr(buf, "SHA-1") != 0) {
+				sig_algo = GNUTLS_SIGN_ECDSA_SHA1;
+			} else if (strstr(buf, "SHA-224") != 0) {
+				sig_algo = GNUTLS_SIGN_ECDSA_SHA224;
+			} else if (strstr(buf, "SHA-256") != 0) {
+				sig_algo = GNUTLS_SIGN_ECDSA_SHA256;
+			} else if (strstr(buf, "SHA-384") != 0) {
+				sig_algo = GNUTLS_SIGN_ECDSA_SHA384;
+			} else if (strstr(buf, "SHA-512") != 0) {
+				sig_algo = GNUTLS_SIGN_ECDSA_SHA512;
+			} else {
+				fprintf(stderr, "unknown signature algo: %s\n", buf);
 				exit(1);
 			}
 
@@ -389,6 +412,7 @@ void sigver()
 			gnutls_free(r.data);
 			
 			gnutls_pubkey_deinit(key);
+			fflush(stderr);
 		}
 	}
 }
