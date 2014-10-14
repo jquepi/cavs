@@ -295,6 +295,7 @@ int main(int argc, char **argv)
 {
 	int encrypt;
 	int xts = 0, ccm = 0;
+	char *outfile = NULL;
 	FILE *in, *out;
 	char *rp;
 	if (argc == 4) {
@@ -303,15 +304,17 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Error opening input file\n");
 			exit(1);
 		}
-		rp = strstr(argv[3], ".req");
+		outfile = strdup(argv[3]);
+		rp = strstr(outfile, ".req");
 		if (rp != NULL)
 			memcpy(rp, ".rsp", 4);
-		else rp = argv[3];
-		out = fopen(rp, "w");
+		else rp = outfile;
+		out = fopen(outfile, "w");
 		if (!out) {
 			fprintf(stderr, "Error opening output file\n");
 			exit(1);
 		}
+		free(outfile);
 	} else if (argc == 2) {
 		in = stdin;
 		out = stdout;
