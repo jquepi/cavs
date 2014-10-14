@@ -300,7 +300,7 @@ int proc_file(char *rqfile, char *rspfile)
 	unsigned char ciphertext[2048];
 	char *rp;
 	gnutls_cipher_hd_t ctx = NULL;
-	int numkeys = 1;
+	int numkeys = 1, start_print = 0;
 
 	if (!rqfile || !(*rqfile)) {
 		printf("No req file\n");
@@ -401,6 +401,7 @@ int proc_file(char *rqfile, char *rspfile)
 			if (ibuf[0] == '[') {
 				fputs(ibuf, rfp);
 				++step;
+				start_print = 0;
 				if (strncasecmp(ibuf, "[ENCRYPT]", 9) == 0)
 					dir = 1;
 				else if (strncasecmp(ibuf, "[DECRYPT]", 9) == 0)
@@ -419,15 +420,19 @@ int proc_file(char *rqfile, char *rspfile)
 
 		case 2:	/* KEY = xxxx */
 			if (*ibuf == '\n' || *ibuf == '\r') {
-				fputs(ibuf, rfp);
+				if (start_print != 0)
+					fputs(ibuf, rfp);
 				break;
 			}
+
 			if (!strncasecmp(ibuf, "COUNT = ", 8)) {
 				fputs(ibuf, rfp);
+				start_print = 1;
 				break;
 			}
 			if (!strncasecmp(ibuf, "COUNT=", 6)) {
 				fputs(ibuf, rfp);
+				start_print = 1;
 				break;
 			}
 			if (!strncasecmp(ibuf, "NumKeys = ", 10)) {
@@ -435,7 +440,8 @@ int proc_file(char *rqfile, char *rspfile)
 				break;
 			}
 
-			fputs(ibuf, rfp);
+			if (start_print != 0)
+				fputs(ibuf, rfp);
 			if (!strncasecmp(ibuf, "KEY = ", 6)) {
 				akeysz = 64;
 				len = hex2bin((char *)ibuf + 6, aKey);
@@ -480,7 +486,8 @@ int proc_file(char *rqfile, char *rspfile)
 			break;
 
 		case 3:	/* IV = xxxx */
-			fputs(ibuf, rfp);
+			if (start_print != 0)
+				fputs(ibuf, rfp);
 			if (strncasecmp(ibuf, "IV = ", 5) != 0) {
 				printf("Missing IV\n");
 				err = 1;
@@ -497,7 +504,8 @@ int proc_file(char *rqfile, char *rspfile)
 			break;
 
 		case 4:	/* PLAINTEXT = xxxx */
-			fputs(ibuf, rfp);
+			if (start_print != 0)
+				fputs(ibuf, rfp);
 			if (strncasecmp(ibuf, "PLAINTEXT = ", 12) != 0) {
 				printf("Missing PLAINTEXT\n");
 				err = 1;
@@ -531,7 +539,8 @@ int proc_file(char *rqfile, char *rspfile)
 			break;
 
 		case 5:	/* CIPHERTEXT = xxxx */
-			fputs(ibuf, rfp);
+			if (start_print != 0)
+				fputs(ibuf, rfp);
 			if (strncasecmp(ibuf, "CIPHERTEXT = ", 13) != 0) {
 				printf("Missing KEY\n");
 				err = 1;
