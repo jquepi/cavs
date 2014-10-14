@@ -14,6 +14,7 @@ all: fips_shatest
 
 Q=../testvectors/SHA/req
 A=../testvectors/SHA/resp
+FAX=../testvectors/SHA/fax
 
 VECTORS = SHA1LongMsg \
 	SHA1Monte \
@@ -34,11 +35,15 @@ VECTORS = SHA1LongMsg \
 .PHONY: check
 
 check: fips_shatest
-	-rm -rf $A
-	-mkdir $A
-	for file in $(VECTORS); do \
+	@-rm -rf $A
+	@-mkdir $A
+	@for file in $(VECTORS); do \
 	    if [ -f $(Q)/$$file.req ]; then \
+		echo "SHA: Testing: $$file"; \
 		./fips_shatest $(Q)/$$file.req $(A)/$$file.rsp; \
+		if test -f $(FAX)/$$file.fax;then \
+			diff -q -B -w -u $(FAX)/$$file.fax $(A)/$$file.rsp || exit 1; \
+		fi; \
 	    fi; \
 	done
 
