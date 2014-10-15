@@ -179,6 +179,11 @@ static void ec_output_Zhash(FILE * out, int exout, gnutls_ecc_curve_t group,
 	ret = _gnutls_ecdh_compute_key(group, ix, iy, id, cx, cy, &Z);
 	if (ret < 0) {
 		if (md) {
+			if (rhash) {
+				fprintf(out, "IUTHashZZ = \n");
+			} else {
+				fprintf(out, "HashZZ = \n");
+			}
 			fprintf(out, "Result = F\n");
 			goto fail;
 		} else {
@@ -186,6 +191,7 @@ static void ec_output_Zhash(FILE * out, int exout, gnutls_ecc_curve_t group,
 			exit(1);
 		}
 	}
+
 	if (md) {
 		if (exout)
 			OutputValue("Z", Z.data, Z.size, out, 0);
