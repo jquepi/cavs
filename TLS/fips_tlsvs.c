@@ -3,7 +3,7 @@
  * project.
  */
 /* ====================================================================
- * Copyright (c) 2013 Red Hat, Inc.
+ * Copyright (c) 2013, 2014 Red Hat, Inc.
  * Copyright (c) 2011 The OpenSSL Project.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

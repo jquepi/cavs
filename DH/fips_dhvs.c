@@ -1,9 +1,6 @@
-/* fips/dh/fips_dhvs.c */
-/* Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL
- * project.
- */
 /* ====================================================================
  * Copyright (c) 2011 The OpenSSL Project.  All rights reserved.
+ * Copyright (c) 2014 Red Hat, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
