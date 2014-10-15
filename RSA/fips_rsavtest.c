@@ -155,7 +155,7 @@ void keygen()
 
 				gnutls_rnd(GNUTLS_RND_NONCE, s, seed.size);
 				seed.data = (void*)s;
-				do_bn_print_name(stdout, "seed", &seed);
+				do_print_name(stdout, "seed", &seed);
 
 				rsa_public_key_init(&pub);
 				rsa_private_key_init(&priv);

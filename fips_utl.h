@@ -155,11 +155,30 @@ unsigned i;
 	return 1;
 }
 
-int do_bn_print_name(FILE * out, const char *name, gnutls_datum_t * bn)
+int do_bn_print_name(FILE * out, const char *name, gnutls_datum_t * _bn)
 {
 	int r;
+	gnutls_datum_t bn = {_bn->data, _bn->size};
+
+	while (bn.size > 0 && bn.data[0] == 0) {
+		bn.size--;
+		bn.data++;
+	}
+
 	fprintf(out, "%s = ", name);
-	r = do_raw_print(out, bn);
+	r = do_raw_print(out, &bn);
+	if (!r)
+		return 0;
+	fputs("\n", out);
+	return 1;
+}
+
+int do_print_name(FILE * out, const char *name, gnutls_datum_t * raw)
+{
+	int r;
+
+	fprintf(out, "%s = ", name);
+	r = do_raw_print(out, raw);
 	if (!r)
 		return 0;
 	fputs("\n", out);
