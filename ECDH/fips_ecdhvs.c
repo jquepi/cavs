@@ -180,7 +180,7 @@ static void ec_output_Zhash(FILE * out, int exout, gnutls_ecc_curve_t group,
 	if (ret < 0) {
 		if (md) {
 			if (rhash) {
-				fprintf(out, "IUTHashZZ = \n");
+				OutputValue("IUTHashZZ", rhash, rhashlen, out, 0);
 			} else {
 				fprintf(out, "HashZZ = \n");
 			}
