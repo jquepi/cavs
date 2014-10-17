@@ -474,8 +474,8 @@ void keypair()
 				do_bn_print_name(stdout, "P", &p);
 				do_bn_print_name(stdout, "Q", &q);
 				do_bn_print_name(stdout, "G", &g);
-				do_bn_print_name(stdout, "Y", &y);
 				do_bn_print_name(stdout, "X", &x);
+				do_bn_print_name(stdout, "Y", &y);
 				putc('\n', stdout);
 			
 				gnutls_privkey_deinit(key);
