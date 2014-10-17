@@ -486,7 +486,7 @@ void keypair()
 
 void siggen()
 {
-	gnutls_privkey_t key;
+	gnutls_privkey_t key = NULL;
 	char buf[1024];
 	char lbuf[1024];
 	int l = 0, n = 0;
@@ -499,6 +499,7 @@ void siggen()
 	gnutls_datum_t msg = {NULL,0};
 	gnutls_datum_t sig;
 	struct asn1_der_iterator ider;
+	unsigned generate_new_key = 0;
 
 	while (fgets(buf, sizeof buf, stdin) != NULL) {
 		if (!parse_line(&keyword, &value, lbuf, buf)) {
@@ -526,43 +527,50 @@ void siggen()
 				exit(1);
 			}
 
+			if (key != NULL)
+				gnutls_privkey_deinit(key);
+			generate_new_key = 1;
+
 			fputs(buf, stdout);
 		} else if (!strcmp(keyword, "Msg")) {
 			msg = hex2raw(value);
 	
-			ret = gnutls_privkey_init(&key);
-			if (ret < 0) {
-				do_print_errors();
-				exit(1);
-			}
+			if (generate_new_key != 0) {
+				generate_new_key = 0;
+				ret = gnutls_privkey_init(&key);
+				if (ret < 0) {
+					do_print_errors();
+					exit(1);
+				}
 			
-			ret = gnutls_privkey_generate(key, GNUTLS_PK_DSA, GNUTLS_SUBGROUP_TO_BITS(l,n), 0);
-			if (ret < 0) {
-				do_print_errors();
-				exit(1);
+				ret = gnutls_privkey_generate(key, GNUTLS_PK_DSA, GNUTLS_SUBGROUP_TO_BITS(l,n), 0);
+				if (ret < 0) {
+					do_print_errors();
+					exit(1);
+				}
+
+
+				ret = gnutls_privkey_export_dsa_raw(key, &p, &q, &g, &y, &x); 
+				if (ret < 0) {
+					do_print_errors();
+					exit(1);
+				}
+				do_bn_print_name(stdout, "P", &p);
+				do_bn_print_name(stdout, "Q", &q);
+				do_bn_print_name(stdout, "G", &g);
+				putc('\n', stdout);
+
+				do_bn_print_name(stdout, "X", &x);
+				do_bn_print_name(stdout, "Y", &y);
 			}
-
-
-			ret = gnutls_privkey_export_dsa_raw(key, &p, &q, &g, &y, &x); 
-			if (ret < 0) {
-				do_print_errors();
-				exit(1);
-			}
-			do_bn_print_name(stdout, "P", &p);
-			do_bn_print_name(stdout, "Q", &q);
-			do_bn_print_name(stdout, "G", &g);
-			putc('\n', stdout);
-
-			fputs(buf, stdout);
-			do_bn_print_name(stdout, "X", &x);
-			do_bn_print_name(stdout, "Y", &y);
-
 
 			ret = gnutls_privkey_sign_data(key, hash, 0, &msg, &sig);
 			if (ret < 0) {
 				do_print_errors();
 				exit(1);
 			}
+
+			fputs(buf, stdout);
 #if 0
 			do_bn_print_name(stdout, "SIG", &sig);
 #endif
@@ -604,13 +612,18 @@ void siggen()
 			putc('\n', stdout);
 
 			gnutls_free(p.data);
+			p.data = NULL;
 			gnutls_free(q.data);
+			q.data = NULL;
 			gnutls_free(g.data);
+			g.data = NULL;
 			gnutls_free(x.data);
+			x.data = NULL;
 			gnutls_free(y.data);
+			y.data = NULL;
 			gnutls_free(sig.data);
-			
-			gnutls_privkey_deinit(key);
+			sig.data = NULL;
+	
 		}
 	}
 }
