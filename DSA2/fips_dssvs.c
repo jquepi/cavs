@@ -57,7 +57,7 @@ void pq(int *num, int l, int n)
 int ret;
 struct dsa_public_key pub;
 struct dss_params_validation_seeds seeds;
-int seed_len = 1 + n/8;
+int seed_len = (7 + n)/8;
 uint8_t seed[MAX_PVP_SEED_SIZE];
 mpz_t s, r;
 
@@ -72,7 +72,7 @@ mpz_t s, r;
 		--(*num);
 		dsa_public_key_init(&pub);
 		memset(&seeds, 0, sizeof(seeds));
-		
+
 		if (seed_len > MAX_PVP_SEED_SIZE) {
 			do_print_errors();
 			exit(1);
@@ -85,7 +85,6 @@ mpz_t s, r;
 				exit(1);
 			}
 			nettle_mpz_set_str_256_u(s, seed_len, seed); 
-
 		} while(mpz_cmp(s, r) < 0);
 
 		ret = _dsa_generate_dss_pq(&pub, &seeds, seed_len, seed,
