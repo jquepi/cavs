@@ -176,7 +176,6 @@ void keygen()
 
 				gnutls_rnd(GNUTLS_RND_NONCE, s, seed.size);
 				seed.data = (void*)s;
-				do_print_name(stdout, "seed", &seed);
 
 				rsa_public_key_init(&pub);
 				rsa_private_key_init(&priv);
@@ -185,6 +184,7 @@ void keygen()
 				/*nettle_mpz_set_str_256_u(pub.e, e.size, e.data);*/
 				mpz_set_ui(pub.e, 65537);
 				pbn("e", pub.e, l/8);
+				do_print_name(stdout, "seed", &seed);
 
 				ret = _rsa_generate_fips186_4_keypair(&pub, &priv,
 								      seed.size,
