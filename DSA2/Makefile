@@ -6,6 +6,7 @@ ifeq (${REQUIRE_FIPS},1)
 	CPPFLAGS += -DREQUIRE_FIPS=$(REQUIRE_FIPS)
 endif
 
+export GNUTLS_FORCE_FIPS_MODE = 2
 CC=	gcc
 CFLAGS=-g -Wall -O2 
 LDFLAGS=-L/usr/local/lib -lgnutls -lgmp -lhogweed
