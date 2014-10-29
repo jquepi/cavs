@@ -173,6 +173,31 @@ int do_bn_print_name(FILE * out, const char *name, gnutls_datum_t * _bn)
 	return 1;
 }
 
+int do_bn_print_name_pad(FILE * out, const char *name, gnutls_datum_t * _bn, unsigned wanted_size)
+{
+	int r;
+	unsigned i;
+	gnutls_datum_t bn = {_bn->data, _bn->size};
+
+	while (bn.size > 0 && bn.data[0] == 0) {
+		bn.size--;
+		bn.data++;
+	}
+
+	fprintf(out, "%s = ", name);
+
+	if (bn.size < wanted_size) {
+		for (i=0;i<wanted_size-bn.size;i++)
+			printf("00");
+	}
+
+	r = do_raw_print(out, &bn);
+	if (!r)
+		return 0;
+	fputs("\n", out);
+	return 1;
+}
+
 int do_print_name(FILE * out, const char *name, gnutls_datum_t * raw)
 {
 	int r;

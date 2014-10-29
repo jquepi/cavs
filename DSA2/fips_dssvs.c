@@ -430,14 +430,22 @@ void pqgver()
 	}
 }
 
+typedef struct gnutls_dh_params_int {   
+	void * params[2];
+        int q_bits;
+} dh_params_st;
+
 void keypair()
 {
 	char buf[1024];
 	char lbuf[1024];
 	char *keyword, *value;
 	int l = 0, n = 0, ret;
+	unsigned i;
+	uint8_t a;
 	gnutls_datum_t p = {NULL,0}, q = {NULL,0}, g = {NULL,0};
 	gnutls_datum_t y = {NULL,0}, x = {NULL,0};
+	unsigned q_size, p_size;
 
 	while (fgets(buf, sizeof buf, stdin) != NULL) {
 		if (!parse_line(&keyword, &value, lbuf, buf)) {
@@ -473,13 +481,24 @@ void keypair()
 				exit(1);
 			}
 
+			i = 0;
+			p_size = p.size;
+			while (p_size > 0 && p.data[i] == 0) {
+				p_size--;
+				i++;
+			}
+
+			i = 0;
+			q_size = q.size;
+			while (q_size > 0 && q.data[i] == 0) {
+				q_size--;
+				i++;
+			}
+
 			do_bn_print_name(stdout, "P", &p);
 			do_bn_print_name(stdout, "Q", &q);
 			do_bn_print_name(stdout, "G", &g);
 			putc('\n', stdout);
-			gnutls_free(p.data);
-			gnutls_free(g.data);
-			gnutls_free(q.data);
 			
 			ret = gnutls_dh_params_init(&dh_params);
 			if (ret < 0)
@@ -489,15 +508,37 @@ void keypair()
 				fprintf(stderr, "error importing DH params\n");
 				exit(1);
 			}
-			
+			i = 0;
+			while (q.size > 0 && q.data[i] == 0) {
+				q.size--;
+				i++;
+			}
+			dh_params->q_bits = q.size*8;
+
+			/* reduce the number of bits to ensure that x <= q */
+			i = 0;
+			a = q.data[0];
+			for (i=0;i<7;i++) {
+				if ((a & 0x80) == 0) {
+					dh_params->q_bits--;
+				} else {
+					break;
+				}
+				a <<= 1;
+			}
+			dh_params->q_bits--;
+
+			gnutls_free(p.data);
+			gnutls_free(g.data);
+			gnutls_free(q.data);
 			gnutls_privkey_deinit(key);
 			while (num--) {
 				if (_gnutls_dh_generate_key(dh_params, &x, &y) < 0) {
 					fprintf(stderr, "error in %s:%d\n", __func__, __LINE__);
 					exit(1);
 				}
-				do_bn_print_name(stdout, "X", &x);
-				do_bn_print_name(stdout, "Y", &y);
+				do_bn_print_name_pad(stdout, "X", &x, q_size);
+				do_bn_print_name_pad(stdout, "Y", &y, p_size);
 				putc('\n', stdout);
 				gnutls_free(x.data);
 				gnutls_free(y.data);
