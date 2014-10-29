@@ -492,6 +492,7 @@ void siggen()
 	char *keyword, *value;
 	int ret;
 	unsigned hash = 0;
+	unsigned lineno = 0;
 	gnutls_datum_t p = {NULL,0}, q = {NULL,0}, g = {NULL,0};
 	gnutls_datum_t y = {NULL,0}, x = {NULL,0};
 	gnutls_datum_t r = {NULL,0}, s = {NULL,0};
@@ -501,13 +502,14 @@ void siggen()
 	unsigned generate_new_key = 0;
 
 	while (fgets(buf, sizeof buf, stdin) != NULL) {
+		lineno++;
 		if (!parse_line(&keyword, &value, lbuf, buf)) {
 			fputs(buf, stdout);
 			continue;
 		}
 		if (!strcmp(keyword, "[mod")) {
 			if (sscanf(value, "L=%d, N=%d", &l, &n) != 2) {
-				fprintf(stderr, "Bad mod line\n");
+				fprintf(stderr, "Bad mod line: %d\n", lineno);
 				exit(1);
 			}
 
@@ -526,8 +528,11 @@ void siggen()
 				exit(1);
 			}
 
-			if (key != NULL)
+			if (key != NULL) {
+				gnutls_free(y.data);
+				y.data = NULL;
 				gnutls_privkey_deinit(key);
+			}
 			generate_new_key = 1;
 
 			fputs(buf, stdout);
@@ -541,7 +546,7 @@ void siggen()
 					do_print_errors();
 					exit(1);
 				}
-			
+
 				ret = gnutls_privkey_generate(key, GNUTLS_PK_DSA, GNUTLS_SUBGROUP_TO_BITS(l,n), 0);
 				if (ret < 0) {
 					do_print_errors();
@@ -559,12 +564,12 @@ void siggen()
 				do_bn_print_name(stdout, "G", &g);
 				putc('\n', stdout);
 
-				do_bn_print_name(stdout, "X", &x);
-				do_bn_print_name(stdout, "Y", &y);
+				//do_bn_print_name(stdout, "X", &x);
 			}
 
 			ret = gnutls_privkey_sign_data(key, hash, 0, &msg, &sig);
 			if (ret < 0) {
+				fprintf(stderr, "error in line %d\n", lineno);
 				do_print_errors();
 				exit(1);
 			}
@@ -573,6 +578,7 @@ void siggen()
 #if 0
 			do_bn_print_name(stdout, "SIG", &sig);
 #endif
+			do_bn_print_name(stdout, "Y", &y);
 			
 			/* break sig into r, s */
 			ret = asn1_der_iterator_first(&ider, sig.size, sig.data);
@@ -618,8 +624,6 @@ void siggen()
 			g.data = NULL;
 			gnutls_free(x.data);
 			x.data = NULL;
-			gnutls_free(y.data);
-			y.data = NULL;
 			gnutls_free(sig.data);
 			sig.data = NULL;
 	
