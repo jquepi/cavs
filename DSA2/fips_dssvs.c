@@ -39,6 +39,9 @@
 
 #include "fips_utl.h"
 
+int _gnutls_dh_generate_key(gnutls_dh_params_t dh_params,
+                            gnutls_datum_t *priv_key, gnutls_datum_t *pub_key);
+
 int
 _gnutls_encode_ber_rs_raw(gnutls_datum_t * sig_value,
                           const gnutls_datum_t * r, const gnutls_datum_t * s);
@@ -449,36 +452,58 @@ void keypair()
 			fputs(buf, stdout);
 		} else if (!strcmp(keyword, "N")) {
 			gnutls_privkey_t key;
+			gnutls_dh_params_t dh_params;
 			int num = atoi(value);
 
+			ret = gnutls_privkey_init(&key);
+			if (ret < 0) {
+				do_print_errors();
+				exit(1);
+			}
+
+			ret = gnutls_privkey_generate(key, GNUTLS_PK_DSA, GNUTLS_SUBGROUP_TO_BITS(l,n), 0);
+			if (ret < 0) {
+				do_print_errors();
+				exit(1);
+			}
+
+			ret = gnutls_privkey_export_dsa_raw(key, &p, &q, &g, NULL, NULL); 
+			if (ret < 0) {
+				do_print_errors();
+				exit(1);
+			}
+
+			do_bn_print_name(stdout, "P", &p);
+			do_bn_print_name(stdout, "Q", &q);
+			do_bn_print_name(stdout, "G", &g);
+			putc('\n', stdout);
+			gnutls_free(p.data);
+			gnutls_free(g.data);
+			gnutls_free(q.data);
+			
+			ret = gnutls_dh_params_init(&dh_params);
+			if (ret < 0)
+				exit(1);
+			ret = gnutls_dh_params_import_raw(dh_params, &p, &g);
+			if (ret < 0) {
+				fprintf(stderr, "error importing DH params\n");
+				exit(1);
+			}
+			
+			gnutls_privkey_deinit(key);
 			while (num--) {
-				ret = gnutls_privkey_init(&key);
-				if (ret < 0) {
-					do_print_errors();
+				if (_gnutls_dh_generate_key(dh_params, &x, &y) < 0) {
+					fprintf(stderr, "error in %s:%d\n", __func__, __LINE__);
 					exit(1);
 				}
-
-				ret = gnutls_privkey_generate(key, GNUTLS_PK_DSA, GNUTLS_SUBGROUP_TO_BITS(l,n), 0);
-				if (ret < 0) {
-					do_print_errors();
-					exit(1);
-				}
-
-				ret = gnutls_privkey_export_dsa_raw(key, &p, &q, &g, &y, &x); 
-				if (ret < 0) {
-					do_print_errors();
-					exit(1);
-				}
-
-				do_bn_print_name(stdout, "P", &p);
-				do_bn_print_name(stdout, "Q", &q);
-				do_bn_print_name(stdout, "G", &g);
 				do_bn_print_name(stdout, "X", &x);
 				do_bn_print_name(stdout, "Y", &y);
 				putc('\n', stdout);
-			
-				gnutls_privkey_deinit(key);
+				gnutls_free(x.data);
+				gnutls_free(y.data);
 			}
+			gnutls_dh_params_deinit(dh_params);
+			dh_params = NULL;
 		}
 	}
 }
