@@ -478,14 +478,15 @@ void keypair()
 			do_bn_print_name(stdout, "G", &g);
 			putc('\n', stdout);
 
-			dsa_public_key_init(&pub);
-			dsa_private_key_init(&pkey);
-
-			nettle_mpz_set_str_256_u(pub.p, p.size, p.data); 
-			nettle_mpz_set_str_256_u(pub.q, q.size, q.data); 
-			nettle_mpz_set_str_256_u(pub.g, g.size, g.data); 
 
 			while (num--) {
+				dsa_public_key_init(&pub);
+				dsa_private_key_init(&pkey);
+
+				nettle_mpz_set_str_256_u(pub.p, p.size, p.data); 
+				nettle_mpz_set_str_256_u(pub.q, q.size, q.data); 
+				nettle_mpz_set_str_256_u(pub.g, g.size, g.data); 
+
 				if (dsa_generate_dss_keypair(&pub, &pkey, NULL, random_func, NULL, NULL) != 1) {
 					fprintf(stderr, "error in %s:%d\n", __func__, __LINE__);
 					exit(1);
@@ -494,13 +495,14 @@ void keypair()
 				pbn("X", pkey.x);
 				pbn("Y", pub.y);
 				putc('\n', stdout);
+
+				dsa_private_key_clear(&pkey);
+				dsa_public_key_clear(&pub);
 			}
 
 			gnutls_free(p.data);
 			gnutls_free(g.data);
 			gnutls_free(q.data);
-			dsa_private_key_clear(&pkey);
-			dsa_public_key_clear(&pub);
 			gnutls_privkey_deinit(key);
 		}
 	}
