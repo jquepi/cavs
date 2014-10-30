@@ -52,6 +52,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gnutls/gnutls.h>
+#ifdef USE_GMP
+# include <gmp.h>
+#endif
 
 #define do_print_errors() \
 	fprintf(stderr, "Error in %s:%d\n", __FILE__, __LINE__)
@@ -209,6 +212,38 @@ int do_print_name(FILE * out, const char *name, gnutls_datum_t * raw)
 	fputs("\n", out);
 	return 1;
 }
+
+#ifdef USE_GMP
+void pbn_pad(const char *name, mpz_t n, unsigned wanted_size)
+{
+unsigned size16 = mpz_sizeinbase(n, 16);
+unsigned bytes = mpz_sizeinbase(n, 256);
+unsigned i;
+
+	printf("%s = ", name);
+	if (bytes < wanted_size) {
+		for (i=0;i<wanted_size-bytes;i++)
+			printf("00");
+	}
+
+	if (size16 % 2 == 0)
+		gmp_printf("%Zx\n", n);
+	else
+		gmp_printf("0%Zx\n", n);
+	return;
+}
+
+void pbn(const char *name, mpz_t n)
+{
+unsigned size16 = mpz_sizeinbase(n, 16);
+
+	if (size16 % 2 == 0)
+		gmp_printf("%s = %Zx\n", name, n);
+	else
+		gmp_printf("%s = 0%Zx\n", name, n);
+	return;
+}
+#endif
 
 int parse_line(char **pkw, char **pval, char *linebuf, char *olinebuf)
 {

@@ -35,38 +35,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#define USE_GMP
 #include "fips_utl.h"
 #include "rsa-fips.h"
-
-static void pbn(const char *name, mpz_t n, unsigned wanted_size)
-{
-unsigned size16 = mpz_sizeinbase(n, 16);
-unsigned bytes = mpz_sizeinbase(n, 256);
-unsigned i;
-
-	printf("%s = ", name);
-	if (bytes < wanted_size) {
-		for (i=0;i<wanted_size-bytes;i++)
-			printf("00");
-	}
-
-	if (size16 % 2 == 0)
-		gmp_printf("%Zx\n", n);
-	else
-		gmp_printf("0%Zx\n", n);
-	return;
-}
-
-static void pbn1(const char *name, mpz_t n)
-{
-unsigned size16 = mpz_sizeinbase(n, 16);
-
-	if (size16 % 2 == 0)
-		gmp_printf("%s = %Zx\n", name, n);
-	else
-		gmp_printf("%s = 0%Zx\n", name, n);
-	return;
-}
 
 static int compare(gnutls_datum_t *_d1, gnutls_datum_t *_d2)
 {
@@ -183,7 +154,7 @@ void keygen()
 				/* set e */
 				/*nettle_mpz_set_str_256_u(pub.e, e.size, e.data);*/
 				mpz_set_ui(pub.e, 65537);
-				pbn("e", pub.e, l/8);
+				pbn_pad("e", pub.e, l/8);
 				do_print_name(stdout, "seed", &seed);
 
 				ret = _rsa_generate_fips186_4_keypair(&pub, &priv,
@@ -195,10 +166,10 @@ void keygen()
 					exit(1);
 				}
 
-				pbn1("p", priv.p);
-				pbn1("q", priv.q);
-				pbn("n", pub.n, l/8);
-				pbn("d", priv.d, l/8);
+				pbn("p", priv.p);
+				pbn("q", priv.q);
+				pbn_pad("n", pub.n, l/8);
+				pbn_pad("d", priv.d, l/8);
 				putc('\n', stdout);
 				fflush(stdout);
 				rsa_private_key_clear(&priv);
@@ -296,10 +267,10 @@ void keygen_seed()
 				exit(1);
 			}
 
-			pbn1("p", priv.p);
-			pbn1("q", priv.q);
-			pbn("n", pub.n, l/8);
-			pbn("d", priv.d, l/8);
+			pbn("p", priv.p);
+			pbn("q", priv.q);
+			pbn_pad("n", pub.n, l/8);
+			pbn_pad("d", priv.d, l/8);
 			putc('\n', stdout);
 			fflush(stdout);
 			rsa_private_key_clear(&priv);
@@ -419,7 +390,7 @@ void keyver()
 			t = get_mpi(priv.p);
 			if (compare(&t, &p) != 0) {
 				fprintf(stderr, "error comparing p\n");
-				pbn("expecting p", priv.p, l/8);
+				pbn_pad("expecting p", priv.p, l/8);
 				err = 1;
 			}
 			free(t.data);
@@ -427,7 +398,7 @@ void keyver()
 			t = get_mpi(priv.q);
 			if (compare(&t, &q) != 0) {
 				fprintf(stderr, "error comparing q\n");
-				pbn("expecting q", priv.q, l/8);
+				pbn_pad("expecting q", priv.q, l/8);
 				err = 1;
 			}
 			free(t.data);
@@ -435,7 +406,7 @@ void keyver()
 			t = get_mpi(pub.n);
 			if (compare(&t, &n) != 0) {
 				fprintf(stderr, "error comparing n\n");
-				pbn("expecting n", pub.n, l/8);
+				pbn_pad("expecting n", pub.n, l/8);
 				err = 1;
 			}
 			free(t.data);
@@ -443,7 +414,7 @@ void keyver()
 			t = get_mpi(priv.d);
 			if (compare(&t, &d) != 0) {
 				fprintf(stderr, "error comparing d\n");
-				pbn("expecting d", priv.d, l/8);
+				pbn_pad("expecting d", priv.d, l/8);
 				err = 1;
 			}
 			free(t.data);

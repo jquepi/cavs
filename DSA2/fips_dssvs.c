@@ -37,6 +37,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#define USE_GMP
 #include "fips_utl.h"
 
 int _gnutls_dh_generate_key(gnutls_dh_params_t dh_params,
@@ -45,15 +46,6 @@ int _gnutls_dh_generate_key(gnutls_dh_params_t dh_params,
 int
 _gnutls_encode_ber_rs_raw(gnutls_datum_t * sig_value,
                           const gnutls_datum_t * r, const gnutls_datum_t * s);
-
-static void pbn(const char *name, mpz_t n)
-{
-	if ((mpz_sizeinbase(n, 16) % 2) == 0)
-		gmp_printf("%s = %Zx\n", name, n);
-	else
-		gmp_printf("%s = 0%Zx\n", name, n);
-	return;
-}
 
 void pq(int *num, int l, int n)
 {
@@ -430,10 +422,13 @@ void pqgver()
 	}
 }
 
-typedef struct gnutls_dh_params_int {   
-	void * params[2];
-        int q_bits;
-} dh_params_st;
+static void random_func(void *ctx, unsigned length, uint8_t *dst)
+{
+	if (gnutls_rnd(GNUTLS_RND_NONCE, dst, length) < 0) {
+		do_print_errors();
+		exit(1);
+	}
+}
 
 void keypair()
 {
@@ -441,11 +436,7 @@ void keypair()
 	char lbuf[1024];
 	char *keyword, *value;
 	int l = 0, n = 0, ret;
-	unsigned i;
-	uint8_t a;
 	gnutls_datum_t p = {NULL,0}, q = {NULL,0}, g = {NULL,0};
-	gnutls_datum_t y = {NULL,0}, x = {NULL,0};
-	unsigned q_size, p_size;
 
 	while (fgets(buf, sizeof buf, stdin) != NULL) {
 		if (!parse_line(&keyword, &value, lbuf, buf)) {
@@ -460,7 +451,8 @@ void keypair()
 			fputs(buf, stdout);
 		} else if (!strcmp(keyword, "N")) {
 			gnutls_privkey_t key;
-			gnutls_dh_params_t dh_params;
+			struct dsa_private_key pkey;
+			struct dsa_public_key pub;
 			int num = atoi(value);
 
 			ret = gnutls_privkey_init(&key);
@@ -481,70 +473,35 @@ void keypair()
 				exit(1);
 			}
 
-			i = 0;
-			p_size = p.size;
-			while (p_size > 0 && p.data[i] == 0) {
-				p_size--;
-				i++;
-			}
-
-			i = 0;
-			q_size = q.size;
-			while (q_size > 0 && q.data[i] == 0) {
-				q_size--;
-				i++;
-			}
-
 			do_bn_print_name(stdout, "P", &p);
 			do_bn_print_name(stdout, "Q", &q);
 			do_bn_print_name(stdout, "G", &g);
 			putc('\n', stdout);
-			
-			ret = gnutls_dh_params_init(&dh_params);
-			if (ret < 0)
-				exit(1);
-			ret = gnutls_dh_params_import_raw(dh_params, &p, &g);
-			if (ret < 0) {
-				fprintf(stderr, "error importing DH params\n");
-				exit(1);
-			}
-			i = 0;
-			while (q.size > 0 && q.data[i] == 0) {
-				q.size--;
-				i++;
-			}
-			dh_params->q_bits = q.size*8;
 
-			/* reduce the number of bits to ensure that x <= q */
-			i = 0;
-			a = q.data[0];
-			for (i=0;i<7;i++) {
-				if ((a & 0x80) == 0) {
-					dh_params->q_bits--;
-				} else {
-					break;
+			dsa_public_key_init(&pub);
+			dsa_private_key_init(&pkey);
+
+			nettle_mpz_set_str_256_u(pub.p, p.size, p.data); 
+			nettle_mpz_set_str_256_u(pub.q, q.size, q.data); 
+			nettle_mpz_set_str_256_u(pub.g, g.size, g.data); 
+
+			while (num--) {
+				if (dsa_generate_dss_keypair(&pub, &pkey, NULL, random_func, NULL, NULL) != 1) {
+					fprintf(stderr, "error in %s:%d\n", __func__, __LINE__);
+					exit(1);
 				}
-				a <<= 1;
+
+				pbn("X", pkey.x);
+				pbn("Y", pub.y);
+				putc('\n', stdout);
 			}
-			dh_params->q_bits--;
 
 			gnutls_free(p.data);
 			gnutls_free(g.data);
 			gnutls_free(q.data);
+			dsa_private_key_clear(&pkey);
+			dsa_public_key_clear(&pub);
 			gnutls_privkey_deinit(key);
-			while (num--) {
-				if (_gnutls_dh_generate_key(dh_params, &x, &y) < 0) {
-					fprintf(stderr, "error in %s:%d\n", __func__, __LINE__);
-					exit(1);
-				}
-				do_bn_print_name_pad(stdout, "X", &x, q_size);
-				do_bn_print_name_pad(stdout, "Y", &y, p_size);
-				putc('\n', stdout);
-				gnutls_free(x.data);
-				gnutls_free(y.data);
-			}
-			gnutls_dh_params_deinit(dh_params);
-			dh_params = NULL;
 		}
 	}
 }
