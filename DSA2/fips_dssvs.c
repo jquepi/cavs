@@ -147,8 +147,10 @@ void pqg()
 	gnutls_datum_t q_seed = {NULL, 0}, p_seed = {NULL, 0}, first_seed = {NULL, 0};
 	unsigned make_g = 0;
 	unsigned test = 0;
+	int line = 0;
 
 	while (fgets(buf, sizeof buf, stdin) != NULL) {
+		line++;
 		if (!strncmp(buf, "[A.1.2.1 ", 9)) {
 			test = TEST_GEN_PQ;
 		} else if (!strncmp(buf, "[A.2.3 ", 7)) {
@@ -175,12 +177,12 @@ void pqg()
 		} else if (!strcmp(keyword, "Num")) {
 			num = atoi(value);
 			if (num == 0) {
-				fprintf(stderr, "Unacceptable num: %d\n", num);
+				fprintf(stderr, "%d: Unacceptable num: %d\n", line, num);
 				exit(1);
 			}
 			if (test != TEST_GEN_PQ) {
-				fprintf(stderr, "Unknown state!\n");
-				exit(1);
+				fprintf(stderr, "%d: Num encountered at unknown state (skipping)!\n", line);
+				continue;
 			}
 			pq(&num, l, n);	/* does its work only if num > 0 */
 		} else if (!strcasecmp(keyword, "Index")) {
