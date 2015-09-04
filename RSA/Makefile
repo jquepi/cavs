@@ -23,7 +23,7 @@ common: fips_rsavtest
 	-mkdir $A
 
 test_keygen: common
-	if [ -f $(Q)/KeyGen_186-3.req ]; then ./fips_rsavtest keygen < $(Q)/KeyGen_186-3.req > $(A)/KeyGen_186-3.rsp; fi
+	if [ -f $(Q)/KeyGen_186-3.req ]; then ./fips_rsavtest keygen-seed < $(Q)/KeyGen_186-3.req > $(A)/KeyGen_186-3.rsp; fi
 
 test_siggen: common
 	if [ -f $(Q)/SigGen15_186-3.req ]; then ./fips_rsavtest siggen < $(Q)/SigGen15_186-3.req > $(A)/SigGen15_186-3.rsp; fi
