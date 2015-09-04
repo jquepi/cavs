@@ -1,7 +1,7 @@
 REQUIRE_FIPS=
 SUBDIRS=TLS RNG AES TDES HMAC SHA DSA2 ECDSA DH ECDH RSA
 
-export GNUTLS_FORCE_FIPS_MODE = 2
+-include common.mk
 
 all: check
 
