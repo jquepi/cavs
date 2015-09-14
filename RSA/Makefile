@@ -8,7 +8,7 @@ endif
 
 -include ../common.mk
 CC=	gcc
-CFLAGS=-g -O2 -Wall
+CFLAGS=$(COMMON_CFLAGS) -g -O2 -Wall
 LDFLAGS=$(COMMON_LDFLAGS) -lhogweed -lgmp -lgnutls
 
 all: fips_rsavtest

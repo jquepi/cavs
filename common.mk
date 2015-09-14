@@ -2,3 +2,4 @@
 
 #COMMON_LDFLAGS = -L/usr/local/lib
 COMMON_LDFLAGS = 
+COMMON_CFLAGS = 

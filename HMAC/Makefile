@@ -8,7 +8,7 @@ endif
 
 -include ../common.mk
 CC=	gcc
-CFLAGS=-g -O2
+CFLAGS=$(COMMON_CFLAGS) -g -O2
 LDFLAGS=$(COMMON_LDFLAGS) -lgnutls
 
 all: fips_hmactest
