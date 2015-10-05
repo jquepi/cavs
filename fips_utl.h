@@ -160,6 +160,24 @@ int do_hex2raw(gnutls_datum_t * pr, const char *in)
 	return 1;
 }
 
+int do_hex2raw_u(gnutls_datum_t * pr, const char *in)
+{
+	unsigned char *p;
+	long plen;
+
+	p = hex2bin_m(in, &plen);
+	if (!p)
+		return 0;
+
+	pr->data = p;
+	pr->size = plen;
+
+	if (pr->data[0] >= 0x80)
+		pad(pr, pr->size+1);
+
+	return 1;
+}
+
 int do_raw_print(FILE * out, gnutls_datum_t * bn)
 {
 unsigned i;
@@ -308,6 +326,16 @@ gnutls_datum_t hex2raw(const char *in)
 	gnutls_datum_t p = {NULL, 0};
 
 	if (!do_hex2raw(&p, in))
+		return p;
+
+	return p;
+}
+
+gnutls_datum_t hex2raw_u(const char *in)
+{
+	gnutls_datum_t p = {NULL, 0};
+
+	if (!do_hex2raw_u(&p, in))
 		return p;
 
 	return p;

@@ -716,10 +716,10 @@ void sigver()
 			y = hex2raw(value);
 			fputs(buf, stdout);
 		} else if (!strcmp(keyword, "R")) {
-			r = hex2raw(value);
+			r = hex2raw_u(value);
 			fputs(buf, stdout);
 		} else if (!strcmp(keyword, "S")) {
-			s = hex2raw(value);
+			s = hex2raw_u(value);
 			fputs(buf, stdout);
 
 			ret = gnutls_pubkey_init(&key);
