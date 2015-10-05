@@ -68,9 +68,8 @@ void keypair()
 			}
 			fputs(buf, stdout);
 			continue;
-		} else if (buf[0] == '[') {
-			fprintf(stderr, "Unsupported curve: %s\n", buf);
-			exit(1);
+		} else if (buf[0] == '[' && buf[1] != 'B') {
+			fprintf(stderr, "Unexpected line: %s\n", buf);
 		}
 
 		if (!parse_line(&keyword, &value, lbuf, buf)) {
