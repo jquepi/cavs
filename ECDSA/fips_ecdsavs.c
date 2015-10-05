@@ -68,7 +68,7 @@ void keypair()
 			}
 			fputs(buf, stdout);
 			continue;
-		} else if (!buf[0] == '[') {
+		} else if (buf[0] == '[') {
 			fprintf(stderr, "Unsupported curve: %s\n", buf);
 			exit(1);
 		}
@@ -142,7 +142,7 @@ void pkver()
 			}
 			fputs(buf, stdout);
 			continue;
-		} else if (!buf[0] == '[') {
+		} else if (buf[0] == '[') {
 			fprintf(stderr, "Unsupported curve: %s\n", buf);
 			exit(1);
 		}
@@ -241,7 +241,7 @@ void siggen()
 			fputs("\n", stdout);
 
 			continue;
-		} else if (!buf[0] == '[') {
+		} else if (buf[0] == '[') {
 			fprintf(stderr, "Unsupported curve: %s\n", buf);
 			exit(1);
 		}
@@ -380,7 +380,7 @@ void sigver()
 			fputs("\n", stdout);
 
 			continue;
-		} else if (!buf[0] == '[') {
+		} else if (buf[0] == '[') {
 			fprintf(stderr, "Unsupported curve: %s\n", buf);
 			exit(1);
 		}
