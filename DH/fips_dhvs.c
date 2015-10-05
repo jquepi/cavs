@@ -123,6 +123,9 @@ static void output_Zhash(FILE * out, int exout,
 		fprintf(stderr, "error in %s:%d\n", __func__, __LINE__);
 		exit(1);
 	}
+
+	pad(&Z, pub_key->size);
+
 	if (exout)
 		OutputValue("Z", Z.data, Z.size, out, 0);
 	gnutls_hash_fast(md, Z.data, Z.size, chash);

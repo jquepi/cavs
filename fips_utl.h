@@ -127,6 +127,24 @@ unsigned char *hex2bin_m(const char *in, long *plen)
 	return p;
 }
 
+void pad(gnutls_datum_t *bn, unsigned size)
+{
+	int left = size - bn->size;
+	unsigned i;
+
+	if (bn->size >= size)
+		return;
+
+	bn->data = realloc(bn->data, size);
+	if (bn->data == NULL)
+		abort();
+
+	memmove(&bn->data[left], bn->data, bn->size);
+	for (i=0;i<left;i++)
+		bn->data[i] = 0;
+	bn->size = size;
+}
+
 int do_hex2raw(gnutls_datum_t * pr, const char *in)
 {
 	unsigned char *p;
