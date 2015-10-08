@@ -102,6 +102,7 @@ static gnutls_digest_algorithm_t parse_md(char *line)
 
 static void output_Zhash(FILE * out, int exout,
 			 gnutls_dh_params_t dh_params,
+			 gnutls_datum_t *p,
 			 gnutls_datum_t *priv_key, gnutls_datum_t *pub_key,
 			 gnutls_datum_t* peerkey, gnutls_digest_algorithm_t md,
 			 unsigned char *rhash, size_t rhashlen)
@@ -124,7 +125,7 @@ static void output_Zhash(FILE * out, int exout,
 		exit(1);
 	}
 
-	pad(&Z, pub_key->size);
+	pad(&Z, p->size);
 
 	if (exout)
 		OutputValue("Z", Z.data, Z.size, out, 0);
@@ -272,7 +273,7 @@ int main(int argc, char **argv)
 			if (!do_hex2raw(&peerkey, value))
 				goto parse_error;
 			if (do_verify == 0) {
-				output_Zhash(out, exout, dh_params, &priv_key, &pub_key,
+				output_Zhash(out, exout, dh_params, &p, &priv_key, &pub_key,
 				             &peerkey, md, NULL, 0);
 			}
 		} else if (!strcmp(keyword, "CAVSHashZZ")) {
@@ -282,7 +283,7 @@ int main(int argc, char **argv)
 			if (!rhash || rhashlen != gnutls_hash_get_len(md))
 				goto parse_error;
 
-			output_Zhash(out, exout, dh_params, &priv_key, &pub_key, &peerkey, md,
+			output_Zhash(out, exout, dh_params, &p, &priv_key, &pub_key, &peerkey, md,
 				     rhash, rhashlen);
 		}
 	}
